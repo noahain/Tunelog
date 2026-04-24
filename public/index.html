@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tunelog</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg0:#0f0f0f;--bg1:#181818;--bg2:#222;--bg3:#2a2a2a;--border:#2f2f2f;--text:#e8e8e8;--muted:#666;--muted2:#444;--accent:#e8e8e8;--star:#c8a84b;--tag-pvp:#c0392b;--tag-tension:#8e44ad;--tag-mystery:#2980b9;--tag-ambient:#27ae60;--tag-chill:#16a085;--tag-emotional:#e67e22;--tag-epic:#d35400;--tag-fantasy:#1abc9c;--tag-sad:#7f8c8d;--tag-sfx:#95a5a6;--tag-cuts:#bdc3c7;--tag-run:#f39c12}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg0);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;padding-bottom:80px}
+header{background:var(--bg1);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:15px}.logo span{color:var(--muted);font-weight:400}
+.header-stats{font-size:11px;color:var(--muted);display:flex;gap:20px}.stat-item strong{color:var(--text)}
+.layout{display:grid;grid-template-columns:220px 1fr;height:calc(100vh - 56px - 80px)}
+sidebar{background:var(--bg1);border-right:1px solid var(--border);overflow-y:auto;padding:16px 0}
+.sidebar-section{margin-bottom:8px}
+.sidebar-label{font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);padding:8px 16px 4px}
+.filter-btn{width:100%;text-align:left;padding:7px 16px;background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px;display:flex;align-items:center;justify-content:space-between;transition:all 0.1s}
+.filter-btn:hover{background:var(--bg2);color:var(--text)}.filter-btn.active{background:var(--bg2);color:var(--text)}
+.filter-btn .count{font-size:10px;color:var(--muted2);background:var(--bg2);padding:1px 6px;border-radius:3px}
+.tag-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:8px;flex-shrink:0}
+main{display:flex;flex-direction:column;overflow:hidden}
+.toolbar{background:var(--bg1);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;gap:10px;align-items:center}
+.search-box{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:7px 12px;color:var(--text);font-family:inherit;font-size:12px;outline:none}
+.btn{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:12px;padding:7px 14px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:var(--bg3);border-color:var(--muted2)}
+.btn-primary{background:var(--text);color:var(--bg0);border-color:var(--text);font-weight:500}
+.episode-filter{background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:inherit;font-size:12px;padding:7px 10px;outline:none;cursor:pointer}
+.track-list{flex:1;overflow-y:auto;padding:12px 20px}
+.track-count{font-size:11px;color:var(--muted);margin-bottom:10px}
+.track-card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:6px;display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:start;transition:border-color 0.1s,background 0.1s}
+.track-card:hover{background:var(--bg2);border-color:var(--muted2)}.track-card.used-card{opacity:0.5}
+.star-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:0;color:var(--muted2);transition:color 0.1s;margin-top:1px}.star-btn.starred{color:var(--star)}.star-btn:hover{color:var(--star)}
+.track-info{min-width:0}.track-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-artist{font-size:11px;color:var(--muted);margin-bottom:6px}
+.track-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.tag-pill{font-size:10px;padding:2px 7px;border-radius:3px;font-family:'DM Mono',monospace;letter-spacing:0.04em;color:#fff;opacity:0.85}
+.track-episodes{font-size:10px;color:var(--muted)}.track-notes{font-size:11px;color:var(--muted);font-style:italic;margin-top:3px}.track-location{font-size:10px;color:var(--muted2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.track-actions{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.action-btn{background:none;border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:inherit;font-size:10px;padding:4px 10px;cursor:pointer;transition:all 0.1s;white-space:nowrap;min-width:60px;text-align:center}
+.action-btn:hover{border-color:var(--muted);color:var(--text);background:var(--bg2)}
+.action-btn.drag-btn{border-color:#2980b9;color:#2980b9;position:relative}
+.action-btn.drag-btn:hover{background:#2980b9;color:#fff}
+.action-btn.play-btn{border-color:#27ae60;color:#27ae60}
+.action-btn.play-btn:hover{background:#27ae60;color:#fff}
+.action-btn.use-btn{border-color:#27ae60;color:#27ae60}
+.action-btn.use-btn:hover{background:#27ae60;color:#fff}
+.action-btn.used-btn{border-color:var(--border);color:var(--muted)}
+.action-btn.used-btn:hover{border-color:var(--muted);color:var(--text)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-title{font-family:'Syne',sans-serif;font-size:15px;margin-bottom:6px}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay:not(.hidden){display:flex}
+.modal{background:var(--bg1);border:1px solid var(--border);border-radius:8px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;padding:24px}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:20px}
+.form-group{margin-bottom:14px}.form-label{display:block;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.form-input,.form-textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:8px 10px;color:var(--text);font-family:inherit;font-size:12px;outline:none}
+.form-textarea{resize:vertical;min-height:60px}
+.tag-grid,.ep-grid{display:flex;flex-wrap:wrap;gap:6px}
+.tag-grid>div,.ep-grid>div{display:flex;align-items:center;gap:4px;background:var(--bg2);padding:4px 8px;border-radius:3px}
+.tag-grid input,.ep-grid input{margin:0}
+.new-tag-row{display:flex;gap:6px;margin-top:8px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px}
+.btn-danger{background:none;border:1px solid #c0392b;color:#c0392b;margin-right:auto}
+.player-bar{position:fixed;bottom:0;left:0;right:0;height:80px;background:linear-gradient(to top, var(--bg1), var(--bg2));border-top:1px solid var(--border);z-index:101;display:flex;align-items:center;padding:0 24px;gap:20px;box-shadow:0 -4px 20px rgba(0,0,0,0.3)}
+.player-cover{width:56px;height:56px;background:var(--bg3);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--muted);border:1px solid var(--border)}
+.player-cover.playing{background:linear-gradient(135deg, var(--tag-mystery), var(--tag-tension))}
+.player-info{flex:1;min-width:0}
+.player-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+.player-artist{font-size:12px;color:var(--muted)}
+.player-controls{display:flex;align-items:center;gap:12px}
+.control-btn{background:transparent;border:1px solid var(--border);border-radius:50%;color:var(--text);width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.15s}
+.control-btn:hover{background:var(--bg3);border-color:var(--muted)}
+.control-btn.play-btn{background:var(--text);border-color:var(--text);color:var(--bg0);width:48px;height:48px;font-size:16px}
+.control-btn.play-btn:hover{background:var(--star);border-color:var(--star)}
+.control-btn:disabled{opacity:0.3;cursor:not-allowed}
+.volume-control{display:flex;align-items:center;gap:8px}.volume-slider{width:80px;height:4px;background:var(--bg3);border-radius:2px;-webkit-appearance:none;appearance:none}.volume-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--text);border-radius:50%;cursor:pointer}.volume-slider::-moz-range-thumb{width:12px;height:12px;background:var(--text);border-radius:50%;cursor:pointer;border:none}
+.progress-container{flex:2;min-width:200px;display:flex;align-items:center;gap:10px}.time-text{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;min-width:40px;text-align:center}
+.progress-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;cursor:pointer;position:relative}.progress-fill{height:100%;background:var(--text);border-radius:2px;width:0%;transition:width 0.1s linear}
+.progress-bar:hover .progress-fill{background:var(--star)}
+.context-menu{position:fixed;background:var(--bg2);border:1px solid var(--border);border-radius:6px;z-index:500;min-width:180px;padding:6px 0;box-shadow:0 8px 24px rgba(0,0,0,0.4);display:none}
+.context-item{padding:8px 16px;cursor:pointer;font-size:12px;color:var(--text);display:flex;align-items:center;gap:10px}
+.context-item:hover{background:var(--bg3)}
+.context-item .icon{font-size:14px;color:var(--muted)}
+.hidden{display:none!important}
+::-webkit-scrollbar{display:none}html{scrollbar-width:none}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">Tunelog</div>
+<div class="header-stats">
+<div class="stat-item"><strong id="stat-total">0</strong> tracks</div>
+<div class="stat-item"><strong id="stat-used">0</strong> used</div>
+<div class="stat-item"><strong id="stat-unused">0</strong> unused</div>
+<div class="stat-item"><strong id="stat-starred">0</strong> starred</div>
+</div>
+</header>
+<div class="layout">
+<sidebar id="sidebar">
+<div class="sidebar-section">
+<div class="sidebar-label">View</div>
+<button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">All Tracks <span class="count" id="count-all">0</span></button>
+<button class="filter-btn" data-filter="starred" onclick="setFilter('starred',this)">Starred <span class="count" id="count-starred">0</span></button>
+<button class="filter-btn" data-filter="unused" onclick="setFilter('unused',this)">Unused <span class="count" id="count-unused">0</span></button>
+<button class="filter-btn" data-filter="used" onclick="setFilter('used',this)">Used <span class="count" id="count-used">0</span></button>
+</div>
+<div class="sidebar-section">
+<div class="sidebar-label">By Tag</div>
+<div id="tag-filters"></div>
+</div>
+<div class="sidebar-section">
+<div class="sidebar-label">System</div>
+<button class="filter-btn" onclick="openSettingsModal()">Settings</button>
+</div>
+</sidebar>
+<main>
+<div class="toolbar">
+<input class="search-box" type="text" placeholder="search tracks or artists..." id="search-input" oninput="renderTracks()">
+<select class="episode-filter" id="ep-filter" onchange="renderTracks()"><option value="">all episodes</option></select>
+<button class="btn btn-primary" onclick="openModal()">+ Add Track</button>
+</div>
+<div class="track-list">
+<div class="track-count" id="track-count">Loading...</div>
+<div id="tracks-container"></div>
+</div>
+</main>
+</div>
+<div class="player-bar" id="player-bar">
+<div class="player-cover" id="player-cover">🎵</div>
+<div class="player-info">
+<div class="player-title" id="player-title">No track playing</div>
+<div class="player-artist" id="player-artist">Select a track to play</div>
+</div>
+<div class="player-controls">
+<button class="control-btn" onclick="prevTrack()" title="Previous" id="prev-btn" disabled>⏮</button>
+<button class="control-btn play-btn" onclick="togglePlay()" title="Play/Pause" id="play-pause-btn">▶</button>
+<button class="control-btn" onclick="nextTrack()" title="Next" id="next-btn" disabled>⏭</button>
+</div>
+<div class="progress-container">
+<span class="time-text" id="current-time">0:00</span>
+<div class="progress-bar" id="progress-bar" onclick="seek(event)"><div class="progress-fill" id="progress-fill"></div></div>
+<span class="time-text" id="duration">0:00</span>
+</div>
+<div class="volume-control">
+<span>🔊</span>
+<input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80" oninput="setVolume(this.value)">
+</div>
+</div>
+<audio id="audio-player" ontimeupdate="updateProgress()" onended="onTrackEnded()" onloadedmetadata="onLoadedMetadata()"></audio>
+<div class="modal-overlay hidden" id="modal-overlay" onclick="closeModal()">
+<div class="modal" onclick="event.stopPropagation()">
+<div class="modal-title" id="modal-title">Add Track</div>
+<div class="form-group"><label class="form-label">Title</label><input class="form-input" id="f-title" placeholder="track name..."></div>
+<div class="form-group"><label class="form-label">Artist</label><input class="form-input" id="f-artist" placeholder="artist name..."></div>
+<div class="form-group"><label class="form-label">Tags</label><div class="tag-grid" id="tag-checkboxes"></div><div class="new-tag-row"><input class="form-input" id="new-tag-input" placeholder="new tag..." style="flex:1"><button class="btn" onclick="addNewTag()">+ Tag</button></div></div>
+<div class="form-group"><label class="form-label">Episodes Used In</label><div class="ep-grid" id="ep-checkboxes"></div><div class="new-tag-row"><input class="form-input" id="new-ep-input" placeholder="e.g. EP5..." style="flex:1"><button class="btn" onclick="addNewEpisode()">+ EP</button></div></div>
+<div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="f-notes" placeholder="usage notes..."></textarea></div>
+<div class="modal-footer">
+<button class="btn btn-danger hidden" id="delete-btn" onclick="deleteTrack()">Delete</button>
+<button class="btn" onclick="closeModal()">Cancel</button>
+<button class="btn btn-primary" onclick="saveTrack()">Save</button>
+</div>
+</div>
+</div>
+<div class="modal-overlay hidden" id="settings-modal-overlay" onclick="closeSettingsModal()">
+<div class="modal" onclick="event.stopPropagation()">
+<div class="modal-title">Settings</div>
+<div class="form-group"><label class="form-label">Music Folder Path</label><input class="form-input" id="setting-music-folder" placeholder="music"></div>
+<div class="form-group"><label class="form-label">Data File Name</label><input class="form-input" id="setting-data-file" placeholder="data.json"></div>
+<div class="form-group"><label class="form-label">Backup Folder</label><input class="form-input" id="setting-backup-folder" placeholder="bkp"></div>
+<div class="form-group"><label class="form-label">Auto Detect</label><div style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="setting-auto-detect" checked style="width:auto"><label for="setting-auto-detect" style="color:var(--muted);font-size:12px">Automatically detect new music files</label></div></div>
+<div class="form-group"><label class="form-label">File Extensions</label><input class="form-input" id="setting-extensions" placeholder=".mp3, .mp4, .wav, .flac, .m4a"></div>
+<div class="modal-footer">
+<button class="btn" onclick="closeSettingsModal()">Close</button>
+<button class="btn btn-primary" onclick="saveSettings()">Save</button>
+</div>
+</div>
+</div>
+<div class="context-menu" id="context-menu" onclick="hideContextMenu()">
+<div class="context-item" onclick="copyFilePath()"><span class="icon">📋</span>Copy file path</div>
+<div class="context-item" onclick="revealInFolder()"><span class="icon">📁</span>Show in folder</div>
+<div class="context-item" onclick="copyDownloadLink()"><span class="icon">🔗</span>Copy download link</div>
+</div>
+<script>
+let data={tracks:[],episodes:[],availableTags:[]};
+let activeFilter='all';
+let editingId=null;
+let config={};
+let currentTrackId=null;
+let contextTrackId=null;
+const TAG_COLORS={pvp:'#c0392b',tension:'#8e44ad',mystery:'#2980b9',ambient:'#27ae60',chill:'#16a085',emotional:'#e67e22',epic:'#d35400',fantasy:'#1abc9c',sad:'#7f8c8d',sfx:'#95a5a6',cuts:'#888',run:'#f39c12'};
+function tagColor(t){return TAG_COLORS[t]||'#555'}
+async function load(){
+try{
+await fetch('/api/startup',{method:'POST'});
+}catch(e){}
+try{
+const res=await fetch('/api/music');
+if(!res.ok)throw new Error('HTTP '+res.status);
+data=await res.json();
+renderAll();
+}catch(e){
+document.getElementById('tracks-container').innerHTML='<div class="empty"><div class="empty-title">Error loading tracks</div><div>'+e.message+'</div></div>';
+}
+}
+function renderAll(){
+renderSidebar();
+renderTracks();
+document.getElementById('stat-total').textContent=data.tracks.length;
+document.getElementById('stat-used').textContent=data.tracks.filter(t=>t.used).length;
+document.getElementById('stat-unused').textContent=data.tracks.filter(t=>!t.used).length;
+document.getElementById('stat-starred').textContent=data.tracks.filter(t=>t.starred).length;
+}
+function renderSidebar(){
+console.log('renderSidebar - availableTags:', data.availableTags?.length, 'tracks:', data.tracks?.length);
+const cnt={};
+(data.availableTags||[]).forEach(t=>cnt[t]=0);
+data.tracks.forEach(t=>(t.tags||[]).forEach(tag=>cnt[tag]=(cnt[tag]||0)+1));
+document.getElementById('tag-filters').innerHTML=data.availableTags.map(tag=>'<button class="filter-btn '+(activeFilter=='tag:'+tag?'active':'')+'" onclick="setFilter(\'tag:'+tag+'\',this)"><span class="tag-dot" style="background:'+tagColor(tag)+'"></span>'+tag+'<span class="count">'+(cnt[tag]||0)+'</span></button>').join('');
+document.getElementById('count-all').textContent=data.tracks.length;
+document.getElementById('count-starred').textContent=data.tracks.filter(t=>t.starred).length;
+document.getElementById('count-unused').textContent=data.tracks.filter(t=>!t.used).length;
+document.getElementById('count-used').textContent=data.tracks.filter(t=>t.used).length;
+const epSel=document.getElementById('ep-filter');
+const curVal=epSel.value;
+let opts='<option value="">all episodes</option>'+data.episodes.map(e=>'<option value="'+e+'">'+e+'</option>').join('');
+epSel.innerHTML=opts;
+epSel.value=curVal;
+}
+function renderTracks(){
+const s=document.getElementById('search-input').value.toLowerCase();
+const ep=document.getElementById('ep-filter').value;
+const filtered=data.tracks.filter(t=>{
+if(s&&!(t.title.toLowerCase().includes(s)||t.artist.toLowerCase().includes(s)))return false;
+if(ep&&!(t.episodes||[]).includes(ep))return false;
+if(activeFilter=='starred'&&!t.starred)return false;
+if(activeFilter=='unused'&&t.used)return false;
+if(activeFilter=='used'&&!t.used)return false;
+if(activeFilter.startsWith('tag:')&&!(t.tags||[]).includes(activeFilter.slice(4)))return false;
+return true;
+});
+document.getElementById('track-count').textContent=filtered.length+' tracks';
+const c=document.getElementById('tracks-container');
+if(filtered.length===0){c.innerHTML='<div class="empty"><div class="empty-title">No tracks found</div></div>';return;}
+c.innerHTML=filtered.map(t=>'<div class="track-card '+(t.used?'used-card':'')+'" id="card-'+t.id+'"><button class="star-btn '+(t.starred?'starred':'')+'" onclick="toggleStar('+t.id+')">★</button><div class="track-info"><div class="track-title">'+esc(t.title)+'</div><div class="track-artist">'+esc(t.artist)+'</div><div class="track-tags">'+(t.tags||[]).map(tag=>'<span class="tag-pill" style="background:'+tagColor(tag)+'">'+tag+'</span>').join('')+'</div>'+((t.episodes||[]).length?'<div class="track-episodes">used in: '+(t.episodes||[]).join(', ')+'</div>':'')+(t.location?'<div class="track-location" title="'+esc(t.location)+'">'+esc(t.location.split('\\').pop())+'</div>':'')+(t.notes?'<div class="track-notes">'+esc(t.notes)+'</div>':'')+'</div><div class="track-actions"><button class="action-btn play-btn" onclick="playTrack('+t.id+')">play</button><button class="action-btn" onclick="openModal('+t.id+')">edit</button><button class="action-btn '+(t.used?'used-btn':'use-btn')+'" onclick="toggleUsed('+t.id+')">'+(t.used?'used':'use')+'</button><button class="action-btn drag-btn" onclick="openInExplorer('+t.id+')">file</button></div></div>').join('');
+}
+async function playTrack(id){
+const t=data.tracks.find(x=>x.id===id);
+if(!t||!t.location)return;
+currentTrackId=id;
+document.getElementById('player-title').textContent=t.title;
+document.getElementById('player-artist').textContent=t.artist;
+document.getElementById('prev-btn').disabled=data.tracks.findIndex(x=>x.id===id)<=0;
+document.getElementById('next-btn').disabled=data.tracks.findIndex(x=>x.id===id)>=data.tracks.length-1;
+document.getElementById('player-cover').classList.add('playing');
+const player=document.getElementById('audio-player');
+const url='/api/tracks/'+id+'/download';
+player.src=url;
+player.volume=document.getElementById('volume-slider').value/100;
+player.play();
+updatePlayButton();
+}
+function togglePlay(){
+const player=document.getElementById('audio-player');
+if(player.paused&&player.src){player.play();}else{player.pause();}
+updatePlayButton();
+}
+function updatePlayButton(){
+const player=document.getElementById('audio-player');
+document.getElementById('play-pause-btn').textContent=player.paused?'▶':'⏸';
+}
+function onTrackEnded(){
+nextTrack();
+}
+async function prevTrack(){
+const idx=data.tracks.findIndex(t=>t.id===currentTrackId);
+if(idx>0&&idx<data.tracks.length)playTrack(data.tracks[idx-1].id);
+}
+async function nextTrack(){
+const idx=data.tracks.findIndex(t=>t.id===currentTrackId);
+if(idx>=0&&idx<data.tracks.length-1)playTrack(data.tracks[idx+1].id);
+}
+function updateProgress(){
+const player=document.getElementById('audio-player');
+const ct=document.getElementById('current-time');
+const dur=document.getElementById('duration');
+const fill=document.getElementById('progress-fill');
+if(player.currentTime){ct.textContent=formatTime(player.currentTime);}
+if(player.duration){dur.textContent=formatTime(player.duration);fill.style.width=(player.currentTime/player.duration*100)+'%';}
+}
+function onLoadedMetadata(){
+const player=document.getElementById('audio-player');
+document.getElementById('duration').textContent=formatTime(player.duration||0);
+}
+function formatTime(s){if(!s||isNaN(s))return'0:00';const m=Math.floor(s/60);const sec=Math.floor(s%60);return m+':'+(sec<10?'0':'')+sec;}
+function seek(e){
+const player=document.getElementById('audio-player');
+if(!player.duration)return;
+const rect=e.currentTarget.getBoundingClientRect();
+const pct=(e.clientX-rect.left)/rect.width;
+player.currentTime=pct*player.duration;
+}
+function setVolume(v){document.getElementById('audio-player').volume=v/100;}
+async function toggleStar(id){
+const t=data.tracks.find(x=>x.id===id);
+if(!t)return;
+await fetch('/api/tracks/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({starred:!t.starred})});
+t.starred=!t.starred;
+renderAll();
+}
+async function toggleUsed(id){
+const t=data.tracks.find(x=>x.id===id);
+if(!t)return;
+await fetch('/api/tracks/'+id,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({used:!t.used})});
+t.used=!t.used;
+renderAll();
+}
+function openModal(id){
+editingId=id;
+document.getElementById('modal-overlay').classList.remove('hidden');
+document.getElementById('modal-title').textContent=id?'Edit Track':'Add Track';
+document.getElementById('delete-btn').classList.toggle('hidden',!id);
+const tr=id?data.tracks.find(t=>t.id===id):null;
+document.getElementById('f-title').value=tr?tr.title:'';
+document.getElementById('f-artist').value=tr?tr.artist:'';
+document.getElementById('f-notes').value=tr?tr.notes:'';
+document.getElementById('tag-checkboxes').innerHTML=data.availableTags.map(tag=>'<div><input type="checkbox" id="tc-'+tag+'" value="'+tag+'" '+(tr&&(tr.tags||[]).includes(tag)?'checked':'')+'> <label for="tc-'+tag+'">'+tag+'</label></div>').join('');
+document.getElementById('ep-checkboxes').innerHTML=data.episodes.map(ep=>'<div><input type="checkbox" id="ec-'+ep+'" value="'+ep+'" '+(tr&&(tr.episodes||[]).includes(ep)?'checked':'')+'> <label for="ec-'+ep+'">'+ep+'</label></div>').join('');
+}
+function closeModal(){document.getElementById('modal-overlay').classList.add('hidden');editingId=null;}
+async function openSettingsModal(){
+document.getElementById('settings-modal-overlay').classList.remove('hidden');
+try{
+const res=await fetch('/api/config');
+config=await res.json();
+document.getElementById('setting-music-folder').value=config.music_folder||'';
+document.getElementById('setting-data-file').value=config.data_file||'';
+document.getElementById('setting-backup-folder').value=config.backup_folder||'';
+document.getElementById('setting-auto-detect').checked=config.auto_detect!==false;
+document.getElementById('setting-extensions').value=(config.auto_detect_extensions||[]).join(', ');
+}catch(e){console.error('Failed to load config:',e);}
+}
+function closeSettingsModal(){document.getElementById('settings-modal-overlay').classList.add('hidden');}
+async function saveSettings(){
+const updates={
+music_folder:document.getElementById('setting-music-folder').value,
+data_file:document.getElementById('setting-data-file').value,
+backup_folder:document.getElementById('setting-backup-folder').value,
+auto_detect:document.getElementById('setting-auto-detect').checked,
+auto_detect_extensions:document.getElementById('setting-extensions').value.split(',').map(s=>s.trim()).filter(s=>s)
+};
+try{
+await fetch('/api/config',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(updates)});
+closeSettingsModal();
+alert('Settings saved. Restart app to apply changes.');
+}catch(e){console.error('Failed to save config:',e);}
+}
+async function saveTrack(){
+const payload={
+title:document.getElementById('f-title').value,
+artist:document.getElementById('f-artist').value||'Unknown',
+notes:document.getElementById('f-notes').value,
+tags:[...document.querySelectorAll('#tag-checkboxes input:checked')].map(c=>c.value),
+episodes:[...document.querySelectorAll('#ep-checkboxes input:checked')].map(c=>c.value)
+};
+if(editingId){
+await fetch('/api/tracks/'+editingId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+const idx=data.tracks.findIndex(t=>t.id===editingId);
+data.tracks[idx]={...data.tracks[idx],...payload};
+}else{
+const res=await fetch('/api/tracks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+const nt=await res.json();
+data.tracks.push(nt);
+}
+closeModal();renderAll();
+}
+async function deleteTrack(){if(!editingId||!confirm('Delete this track?'))return;await fetch('/api/tracks/'+editingId,{method:'DELETE'});data.tracks=data.tracks.filter(t=>t.id!==editingId);closeModal();renderAll();}
+async function addNewTag(){
+const v=document.getElementById('new-tag-input').value.trim().toLowerCase();
+if(!v||data.availableTags.includes(v))return;
+await fetch('/api/tags',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:v})});
+data.availableTags.push(v);
+document.getElementById('new-tag-input').value='';
+openModal(editingId);
+renderSidebar();
+}
+async function addNewEpisode(){
+const v=document.getElementById('new-ep-input').value.trim();
+if(!v||data.episodes.includes(v))return;
+await fetch('/api/episodes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:v})});
+data.episodes.push(v);
+document.getElementById('new-ep-input').value='';
+openModal(editingId);
+renderSidebar();
+}
+function setFilter(f,btn){
+activeFilter=f;
+document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+if(btn)btn.classList.add('active');
+renderTracks();
+}
+function showFileMenu(e,id){
+e.preventDefault();
+contextTrackId=id;
+const menu=document.getElementById('context-menu');
+menu.style.display='block';
+menu.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';
+menu.style.top=Math.min(e.clientY,window.innerHeight-150)+'px';
+document.addEventListener('click',hideContextMenu,{once:true});
+}
+function hideContextMenu(){document.getElementById('context-menu').style.display='none';}
+async function copyFilePath(){
+if(!contextTrackId)return;
+const t=data.tracks.find(x=>x.id===contextTrackId);
+if(t&&t.location){
+try{await navigator.clipboard.writeText(t.location);}catch(e){}
+}
+hideContextMenu();
+}
+async function revealInFolder(){
+if(!contextTrackId)return;
+try{await fetch('/api/tracks/'+contextTrackId+'/reveal',{method:'POST'});}catch(e){console.error(e);}
+hideContextMenu();
+}
+async function copyDownloadLink(){
+if(!contextTrackId)return;
+const url=window.location.origin+'/api/tracks/'+contextTrackId+'/download';
+try{await navigator.clipboard.writeText(url);}catch(e){}
+hideContextMenu();
+}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function openInExplorer(id){
+const t=data.tracks.find(x=>x.id===parseInt(id));
+if(!t||!t.location)return;
+if(window.pywebview&&window.pywebview.api){
+window.pywebview.api.select_file_in_explorer(t.location);
+}
+}
+load();
+</script>
+</body>
+</html>

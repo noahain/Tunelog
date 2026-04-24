@@ -1,0 +1,13 @@
+{
+  "music_folder": "music",
+  "auto_detect": true,
+  "auto_detect_extensions": [
+    ".mp3",
+    ".mp4",
+    ".wav",
+    ".flac",
+    ".m4a"
+  ],
+  "data_file": "data.json",
+  "backup_folder": "database"
+}
