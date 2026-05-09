@@ -1,69 +1,67 @@
-![Tunelog Banner](assets/banner.png)
 
-**Tunelog** is a specialized music library manager designed for content creators and editors. It provides a high-performance, local-first workflow to track your music assets, manage episode usage, and organize tracks with a custom tagging system.
+<div align="center">
+  <img src="assets/icon.png" width="144" height="144" alt="Tunelog" />
+  <h1>Tunelog</h1>
 
-## 🚀 Advanced Features
+  <p><strong>Music library manager for content creators and editors</strong></p>
 
-### 🧠 Intelligent Music Management
-- **Visual Library Tracking**: Instantly see which tracks are used, unused, or starred across your entire project history.
-- **Episode-Based Cataloging**: Track exactly which episode of your series or podcast a specific track was used in to avoid repetitive soundtracks.
-- **Real-Time Search**: Filter through thousands of snippets by artist, title, or tags with zero latency.
-
-### 🔒 Privacy & Architecture
-- **Local-First Persistence**: Your library data is stored in a structured `data.json` file on your machine. Tunelog operates entirely offline, keeping your curation private.
-- **Automated Discovery**: Built-in `FileSystemEventHandler` monitors your music folder and automatically detects new files, adding them to your library without manual entry.
-- **Isolated SQLite & JSON**: High-speed retrieval of track metadata ensures the UI remains snappy even with massive local libraries.
-
-### 📂 Data & Configuration
-Tunelog creates a private workspace to house your assets and backups:
-- **Default Directory:** `%APPDATA%/Tunelog`
+  <p>
+    <img src="https://img.shields.io/badge/version-1.0.0-blue" alt="version" />
+    <img src="https://img.shields.io/badge/license-MIT-green" alt="license" />
+    <img src="https://img.shields.io/badge/platform-Windows-lightgrey" alt="platform" />
+    <img src="https://img.shields.io/badge/python-3.12-blue" alt="python" />
+  </p>
+</div>
 
 ---
 
-## 🛠️ Tech Stack
+Tunelog tracks your music library. See which tracks are used, unused, or starred. Tag episodes to avoid repetitive soundtracks. Search by artist, title, or tags. All offline.
 
-Tunelog is built using a modern, lightweight desktop architecture:
-- **Backend**: **Flask (Python 3.12)** handling REST API endpoints for music metadata and system configuration.
-- **Frontend**: **HTML5/CSS3/JS** with a sleek, dark-mode CSS Grid layout (220px sidebar architecture).
-- **Desktop Wrapper**: **pywebview** provides a native window experience without the overhead of Electron.
-- **System Integration**: Socket-based protection and PowerShell integration for silent file operations.
+## What it does
 
----
+**Library tracking**
+- Visual indicators: used, unused, starred
+- Episode-based cataloging, know which track played in which episode
+- Real-time search across thousands of tracks
 
-## 📥 Installation
+**Automated discovery**
+- Monitors your music folder with `FileSystemEventHandler`
+- Detects new files automatically — no manual entry
 
-### 1. Prerequisites
-Ensure you have [Python 3.12](https://www.python.org/) installed.
+**Storage**
+- `data.json` on your machine
+- SQLite for metadata retrieval
+- Operates entirely offline
 
-### 2. Setup
+## Where data lives
+
+| Platform | Path |
+| :--- | :--- |
+| **Windows** | `%APPDATA%/Tunelog` |
+
+## Install
+
+**Requirements**
+- [Python 3.12](https://www.python.org/)
+
 ```bash
-# Clone the repository
 git clone https://github.com/noahain/tunelog
-
-# Enter the project folder
 cd tunelog
-
-# Install dependencies
 py -3.12 -m pip install -r requirements.txt
-
-# Run the app
 py -3.12 main.py
 ```
 
----
+## Tech stack
 
-## 🤖 Agentic Development
+Python 3.12 · Flask · SQLite · pywebview · HTML/CSS/JS
 
-Tunelog was developed through an advanced **Human-AI Collaboration** workflow:
-- **Lead Architect:** Noahain (Product Vision & Logic Direction)
-- **Primary Developer:** **Claude Code** (Powered by **Kimi K2.5**) - Implemented the Flask REST API, SQLite storage logic, and the core frontend state management.
-- **Technical Consultant:** **Gemini 3 Flash** - Provided architectural guidance, UI/UX polish, and fixed cross-process communication between Python and the WebView.
+## Development story
 
----
+- **Lead:** Noahain - product vision, logic direction
+- **Primary developer:** Claude Code (Kimi K2.5) - Flask REST API, SQLite storage, frontend state
+- **Technical consultant:** Gemini 3 Flash - architecture, UI polish, cross-process communication
 
-## ⚖️ License & Disclaimer
-Tunelog is an independent productivity tool for creators. 
+## License
 
-**License:** MIT 
+MIT
 
-Built with ❤️ and Artificial Intelligence.
